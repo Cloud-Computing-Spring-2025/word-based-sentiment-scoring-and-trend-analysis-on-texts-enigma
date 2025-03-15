@@ -9,7 +9,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class DocumentSimilarityReducer extends Reducer<Text, BookWritable, BookWritable, IntWritable> {
+public class BookTokenizerReducer extends Reducer<BookWritable, Text, BookWritable, Text> {
 
     private BookWritable document = new BookWritable();
     private final static IntWritable one = new IntWritable(1);
