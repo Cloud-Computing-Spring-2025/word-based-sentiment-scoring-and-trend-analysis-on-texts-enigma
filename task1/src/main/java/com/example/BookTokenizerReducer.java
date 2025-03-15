@@ -8,7 +8,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 public class BookTokenizerReducer extends Reducer<BookWritable, Text, BookWritable, Text> {
 
-    private BookWritable bookDetails = new BookWritable();
     private Text fullText = new Text();
 
     @Override
@@ -18,6 +17,6 @@ public class BookTokenizerReducer extends Reducer<BookWritable, Text, BookWritab
 
         fullText.set(String.join(" ", textLines));
 
-        context.write(bookDetails, fullText);
+        context.write(key, fullText);
     }
 }
