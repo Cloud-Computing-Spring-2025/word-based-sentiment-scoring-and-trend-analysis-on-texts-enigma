@@ -20,29 +20,24 @@ public class BookTokenizer {
     
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         Configuration config = new Configuration();
-        Path out = new Path(args[1]);
 
         // Pair the documents to their words
-        Job job1 = Job.getInstance(config, "Book Text Preprocessing");
-        job1.setJarByClass(BookTokenizer.class);
+        Job job = Job.getInstance(config, "Book Text Preprocessing");
+        job.setJarByClass(BookTokenizer.class);
 
-        job1.setMapperClass(BookTokenizerMapper.class);
-        job1.setReducerClass(BookTokenizerReducer.class);
+        job.setMapperClass(BookTokenizerMapper.class);
+        job.setReducerClass(BookTokenizerReducer.class);
 
-        job1.setMapOutputKeyClass(BookWritable.class);
-        job1.setMapOutputValueClass(Text.class);
+        job.setMapOutputKeyClass(BookWritable.class);
+        job.setMapOutputValueClass(Text.class);
 
-        job1.setOutputKeyClass(BookWritable.class);
-        job1.setOutputValueClass(Text.class);
+        job.setOutputKeyClass(BookWritable.class);
+        job.setOutputValueClass(Text.class);
 
-        job1.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job, new Path(args[2] + "/task1")); 
 
-        // Input and Output Paths for First Job
-        FileInputFormat.addInputPath(job1, new Path(args[0]));
-        Path intermediateOutput = new Path(out, "out1");
-        FileOutputFormat.setOutputPath(job1, intermediateOutput);
-
-        if (!job1.waitForCompletion(true)) {
+        if (!job.waitForCompletion(true)) {
             System.exit(1);
         }
 
