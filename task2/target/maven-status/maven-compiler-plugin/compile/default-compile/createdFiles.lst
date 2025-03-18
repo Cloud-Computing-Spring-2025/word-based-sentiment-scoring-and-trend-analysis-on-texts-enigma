@@ -1,0 +1,3 @@
+com/enigma/mapper/LemmatizationMapper.class
+com/enigma/controller/WordFrequencyController.class
+com/enigma/reducer/WordFrequencyReducer.class
