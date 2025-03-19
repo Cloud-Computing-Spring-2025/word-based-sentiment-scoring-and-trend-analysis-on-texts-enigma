@@ -1,7 +1,14 @@
+package com.example.controller;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.filecache.DistributedCache;
+import com.example.TrendAnalysisMapper;
+import com.example.TrendAnalysisReducer;
 
 public class TrendAnalysisController {
     public static void main(String[] args) throws Exception {
