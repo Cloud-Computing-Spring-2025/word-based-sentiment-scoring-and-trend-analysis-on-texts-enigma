@@ -2,47 +2,45 @@ package com.example;
 
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Mapper;
-import java.io.*;
-import java.util.*;
+
+import java.io.IOException;
 
 public class SentimentMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
-    private Map<String, Integer> sentimentLexicon = new HashMap<>();
-
     @Override
-    protected void setup(Context context) throws IOException {
-        // Define a simple sentiment lexicon directly in the Mapper
-        sentimentLexicon.put("happy", 1);
-        sentimentLexicon.put("sad", -1);
-        sentimentLexicon.put("joyful", 2);
-        sentimentLexicon.put("angry", -2);
-        sentimentLexicon.put("neutral", 0);
-        // Add more words and sentiment scores as needed
-    }
+    protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+        // Log the raw input line for debugging
+        System.out.println("Processing line: " + value.toString());
 
-    @Override
-    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        // Expected input format: bookID, word, year, frequency
-        String[] parts = value.toString().split(",");
-        if (parts.length < 4) return;  // Skip if the line doesn't have enough parts
+        // Normalize the input line by replacing multiple spaces/tabs with a single space
+        String line = value.toString().replaceAll("\\s+", " ").trim();
+        String[] fields = line.split(",");
 
-        String bookID = parts[0];
-        String word = parts[1].toLowerCase();  // Convert to lowercase for case-insensitive matching
-        String year = parts[2];
-        int frequency;
+        // Validate the input line
+        if (fields.length < 3) {
+            System.err.println("Invalid line: " + line); // Log invalid lines
+            return; // Skip invalid lines
+        }
 
+        // Extract relevant fields (e.g., bookID, year, sentimentScore)
+        String bookID = fields[0].trim();
+        String year = fields[1].trim();
+        String rawSentimentScore = fields[2].trim();
+
+        // Log the raw sentiment score for debugging
+        System.out.println("Raw sentiment score: " + rawSentimentScore);
+
+        int sentimentScore;
         try {
-            frequency = Integer.parseInt(parts[3]);
+            // Remove any remaining spaces or tabs from the sentiment score before parsing
+            sentimentScore = Integer.parseInt(rawSentimentScore.replaceAll("\\s+", ""));
         } catch (NumberFormatException e) {
-            return;  // Skip if frequency is invalid
+            System.err.println("Invalid sentiment score: " + rawSentimentScore); // Log invalid scores
+            return; // Skip lines with invalid sentiment scores
         }
 
-        // Check if the word exists in the sentiment lexicon
-        if (sentimentLexicon.containsKey(word)) {
-            int sentimentScore = sentimentLexicon.get(word) * frequency;  
-            // Multiply by frequency of the word
-            System.out.println("Emitting output for: " + bookID + ", " + year + " -> " + sentimentScore);
-
-            context.write(new Text(bookID + "," + year), new IntWritable(sentimentScore));  // Emit (bookID, year) -> sentimentScore
-        }
+        // Emit the composite key (bookID, year) and sentiment score
+        String compositeKey = bookID + "," + year;
+        System.out.println("Emitting: " + compositeKey + " -> " + sentimentScore); // Log emitted key-value pairs
+        context.write(new Text(compositeKey), new IntWritable(sentimentScore));
     }
 }

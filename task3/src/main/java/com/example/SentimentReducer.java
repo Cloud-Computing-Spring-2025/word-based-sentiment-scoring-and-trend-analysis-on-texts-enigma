@@ -6,15 +6,15 @@ import java.io.*;
 
 public class SentimentReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
     @Override
-    public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-        int totalSentimentScore = 0;
+    protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        int totalSentiment = 0;
 
-        // Sum up all sentiment scores for the given (bookID, year)
-        for (IntWritable value : values) {
-            totalSentimentScore += value.get();
+        // Iterate through all the sentiment scores for a specific (bookID, year)
+        for (IntWritable val : values) {
+            totalSentiment += val.get();
         }
 
-        // Emit the total sentiment score for the (bookID, year)
-        context.write(key, new IntWritable(totalSentimentScore));
+        // Emit the result: (bookID, year) -> totalSentiment
+        context.write(key, new IntWritable(totalSentiment));
     }
 }
