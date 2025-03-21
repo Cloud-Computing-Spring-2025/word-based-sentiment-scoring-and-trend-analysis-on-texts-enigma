@@ -89,7 +89,7 @@ View results:
    ```
 
 ## Task 3: Sentiment Scoring
-### 1. ** Move to task3 **
+### 1. **Move to task3**
 ```bash
 cd task3
 ```
