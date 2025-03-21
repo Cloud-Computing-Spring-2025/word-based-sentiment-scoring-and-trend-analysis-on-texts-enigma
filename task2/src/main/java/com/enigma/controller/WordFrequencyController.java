@@ -16,23 +16,26 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 public class WordFrequencyController {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-    
+
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Word Frequency Analysis with Lemmatization");
-        
+
         job.setJarByClass(WordFrequencyController.class);
         job.setMapperClass(com.enigma.mapper.LemmatizationMapper.class);
-        job.setCombinerClass(com.enigma.reducer.WordFrequencyReducer.class); 
         job.setReducerClass(com.enigma.reducer.WordFrequencyReducer.class);
+
+        // Setting the output key/value types for Mapper
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
         
-        // Setting the output key/value types for Mapper and Reducer
+        // Setting the output key/value types for Reducer
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        
+        job.setOutputValueClass(Text.class);
+
         // Setting input and output path
         job.setInputFormatClass(TextInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[1])); 
-        
+
         // Create a unique output path based on timestamp
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String timestamp = dateFormat.format(new Date());
