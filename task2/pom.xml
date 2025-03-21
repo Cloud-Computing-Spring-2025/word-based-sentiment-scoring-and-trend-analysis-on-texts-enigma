@@ -15,7 +15,6 @@
     </properties>
 
     <dependencies>
-        <!-- Hadoop Dependencies -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
@@ -23,17 +22,10 @@
             <scope>provided</scope>
         </dependency>
         
-        <!-- Stanford CoreNLP with Models -->
         <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>${corenlp.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>${corenlp.version}</version>
-            <classifier>models</classifier>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
         </dependency>
     </dependencies>
 
