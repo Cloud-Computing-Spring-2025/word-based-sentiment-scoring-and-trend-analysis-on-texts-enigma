@@ -89,7 +89,10 @@ View results:
    ```
 
 ## Task 3: Sentiment Scoring
-
+Move to task3
+```bash
+cd task3
+```
 
 ## Task 4: Trend Analysis
 

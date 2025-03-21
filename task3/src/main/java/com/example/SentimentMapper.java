@@ -2,45 +2,66 @@ package com.example;
 
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Mapper;
-
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.conf.Configuration;
 
 public class SentimentMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+    private Map<String, Integer> sentimentLexicon = new HashMap<>();
+
     @Override
-    protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        // Log the raw input line for debugging
-        System.out.println("Processing line: " + value.toString());
+    protected void setup(Context context) throws IOException {
+        // Load the AFINN-111 sentiment lexicon from HDFS
+        Configuration conf = context.getConfiguration();
+        Path lexiconPath = new Path("/input/dataset/afinn.txt"); // HDFS path to the afinn.txt file
+        FileSystem fs = FileSystem.get(conf);
 
-        // Normalize the input line by replacing multiple spaces/tabs with a single space
-        String line = value.toString().replaceAll("\\s+", " ").trim();
-        String[] fields = line.split(",");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(lexiconPath)))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                if (parts.length == 2) {
+                    String word = parts[0].toLowerCase();
+                    int score = Integer.parseInt(parts[1]);
+                    sentimentLexicon.put(word, score);
+                }
+            }
+        }
+        System.out.println("Loaded AFINN-111 lexicon with " + sentimentLexicon.size() + " entries.");
+    }
 
-        // Validate the input line
-        if (fields.length < 3) {
-            System.err.println("Invalid line: " + line); // Log invalid lines
+    @Override
+    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+        String[] parts = value.toString().split(",");
+        if (parts.length < 4) {
+            System.err.println("Invalid input line: " + value.toString());
             return; // Skip invalid lines
         }
 
-        // Extract relevant fields (e.g., bookID, year, sentimentScore)
-        String bookID = fields[0].trim();
-        String year = fields[1].trim();
-        String rawSentimentScore = fields[2].trim();
+        String bookID = parts[0];
+        String word = parts[1].toLowerCase().replaceAll("[^a-z]", ""); // Normalize word
+        String year = parts[2];
+        String rawFrequency = parts[3].trim(); // Trim whitespace from the frequency field
 
-        // Log the raw sentiment score for debugging
-        System.out.println("Raw sentiment score: " + rawSentimentScore);
-
-        int sentimentScore;
+        int frequency;
         try {
-            // Remove any remaining spaces or tabs from the sentiment score before parsing
-            sentimentScore = Integer.parseInt(rawSentimentScore.replaceAll("\\s+", ""));
+            // Sanitize the frequency field by removing non-numeric characters
+            rawFrequency = rawFrequency.replaceAll("[^0-9]", "");
+            frequency = Integer.parseInt(rawFrequency);
         } catch (NumberFormatException e) {
-            System.err.println("Invalid sentiment score: " + rawSentimentScore); // Log invalid scores
-            return; // Skip lines with invalid sentiment scores
+            System.err.println("Invalid frequency: " + rawFrequency + " in line: " + value.toString());
+            return; // Skip lines with invalid frequency
         }
 
-        // Emit the composite key (bookID, year) and sentiment score
-        String compositeKey = bookID + "," + year;
-        System.out.println("Emitting: " + compositeKey + " -> " + sentimentScore); // Log emitted key-value pairs
-        context.write(new Text(compositeKey), new IntWritable(sentimentScore));
+        // Check if the word exists in the sentiment lexicon
+        if (sentimentLexicon.containsKey(word)) {
+            int sentimentScore = sentimentLexicon.get(word) * frequency;
+            System.out.println("Mapper emitting: " + bookID + "," + year + " -> " + sentimentScore);
+            context.write(new Text(bookID + "," + year), new IntWritable(sentimentScore)); // Emit (bookID, year) -> sentimentScore
+        } else {
+            System.out.println("Word not found in lexicon: " + word);
+        }
     }
 }

@@ -7,8 +7,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.example.SentimentMapper; // Corrected package
-import com.example.SentimentReducer; // Corrected package
+import com.example.SentimentMapper;
+import com.example.SentimentReducer;
 
 public class SentimentAnalysisDriver {
     public static void main(String[] args) throws Exception {
