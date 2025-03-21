@@ -66,12 +66,12 @@ It makes lemmatization faster and more efficient without using heavy processing 
 ### Execution Steps
 1. cd into the `task2` directory
 1. run `mvn install` to build the package
-1. `docker cp target/original-word-frequency-analysis-1.0-SNAPSHOT.jar resourcemanager:/opt/hadoop-2.7.4/share/hadoop/mapreduce/` moves the jar into the container
+1. `docker cp target/word-frequency-analysis-1.0-SNAPSHOT.jar resourcemanager:/opt/hadoop-2.7.4/share/hadoop/mapreduce/` moves the jar into the container
 1. `docker cp input resourcemanager:/word-frequency/input` copies input data into the container
 1. Now, in the container, create input dir in hdfs: `hadoop fs -mkdir -p /input/dataset`
 1. Copy input files from container to hdfs: `hadoop fs -put /word-frequency/input/*.txt /input/dataset`
 1. Run the job:
-`hadoop jar /opt/hadoop-2.7.4/share/hadoop/mapreduce/original-word-frequency-analysis-1.0-SNAPSHOT.jar com.enigma.controller.WordFrequencyController /input/dataset/from-india-to-planet-mars-parsed.txt /output`
+`hadoop jar /opt/hadoop-2.7.4/share/hadoop/mapreduce/word-frequency-analysis-1.0-SNAPSHOT.jar com.enigma.controller.WordFrequencyController /input/dataset/from-india-to-planet-mars-parsed.txt /output`
 1. For viewing results:
 View results:
    ```bash
