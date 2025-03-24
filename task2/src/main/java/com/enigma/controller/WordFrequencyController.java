@@ -18,6 +18,7 @@ public class WordFrequencyController {
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
         Configuration conf = new Configuration();
+        conf.set("mapreduce.output.textoutputformat.separator", ",");
         Job job = Job.getInstance(conf, "Word Frequency Analysis with Lemmatization");
 
         job.setJarByClass(WordFrequencyController.class);
@@ -30,7 +31,7 @@ public class WordFrequencyController {
         
         // Setting the output key/value types for Reducer
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+        job.setOutputValueClass(IntWritable.class); 
 
         // Setting input and output path
         job.setInputFormatClass(TextInputFormat.class);
