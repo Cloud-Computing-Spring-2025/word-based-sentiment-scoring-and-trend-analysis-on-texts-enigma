@@ -1,0 +1,4 @@
+col_name,data_type,comment
+book_name,string,
+year,int,
+bigram_freqs,"map<string,int>",
