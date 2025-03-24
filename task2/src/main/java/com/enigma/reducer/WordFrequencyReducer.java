@@ -5,7 +5,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import java.io.IOException;
 
-public class WordFrequencyReducer extends Reducer<Text, IntWritable, Text, Text> {  // Changed output value type to Text
+public class WordFrequencyReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 
     @Override
     public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
@@ -16,11 +16,12 @@ public class WordFrequencyReducer extends Reducer<Text, IntWritable, Text, Text>
             sum += val.get();
         }
 
-        // Output: bookID,lemma,year,frequency as a single Text value
+        // Remove the trailing comma if it exists
         String keyStr = key.toString();
-        String valueStr = Integer.toString(sum);
+        if (keyStr.endsWith(",")) {
+            keyStr = keyStr.substring(0, keyStr.length() - 1);
+        }
         
-        // Output combined format
-        context.write(new Text(keyStr + "," + valueStr), new Text(""));  // setting empty Text as value
+        context.write(new Text(keyStr), new IntWritable(sum));
     }
 }
