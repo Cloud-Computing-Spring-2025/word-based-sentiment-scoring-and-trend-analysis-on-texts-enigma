@@ -191,4 +191,129 @@ To copy the output from HDFS to your local machine:
 
 
 ## Task 5: Bigram Analysis
+Task 5 of the project, which involves extracting and analyzing bigrams using a custom Hive UDF implemented in Java. The UDF processes lemmatized text data, extracts bigrams, and computes their frequency counts.
 
+### Objective
+The goal is to:
+1. Develop a Hive UDF in Java to analyze bigrams.
+2. Load lemmatized text data into Hive tables.
+3. Use the UDF to extract bigrams and count their occurrences.
+4. Store and query results for analysis.
+
+## Execution steps: 
+  1. Copy Files into Hive Server: Docker compose up independently and then Use the following commands to copy the required files (Java UDF and input data) into the hive-server container:
+     ```bash
+         docker compose up -d
+     ```
+     ```bash
+         docker cp task5/BigramUDF.java hive-server:/opt/hive
+     ```
+     ```bash
+         docker cp task5/inputs/input1 hive-server:/opt/hive
+     ```
+     ```bash
+         docker cp task5/inputs/input2 hive-server:/opt/hive
+     ```
+     ```bash
+         docker cp task5/inputs/input3 hive-server:/opt/hive
+     ```
+     ```bash
+         docker cp task5/inputs/input4 hive-server:/opt/hive
+     ```
+     ```bash
+         docker cp task5/inputs/input5 hive-server:/opt/hive
+     ```
+  2. Access Hive Server: Log into the hive-server container:
+     ```bash
+         docker exec -it hive-server /bin/bash
+     ```
+  3. Upload Files to HDFS
+     navigate to the directory in hive-server container where we copied our files
+     ```bash
+       cd /opt/hive
+     ```
+     Upload the Java file to HDFS
+     ```bash
+       hdfs dfs -put BigramUDF.java /user/hive/warehouse
+     ```
+     Create a directory for input files in HDFS
+     ```bash
+       hdfs dfs -mkdir /user/hive/inputs
+     ```
+     Upload input files to HDFS
+     ```bash
+       hdfs dfs -put input1 /user/hive/inputs
+     ```
+     ```bash
+       hdfs dfs -put input2 /user/hive/inputs
+     ```
+     ```bash
+       hdfs dfs -put input3 /user/hive/inputs
+     ```
+     ```bash
+       hdfs dfs -put input4 /user/hive/inputs
+     ```
+     ```bash
+       hdfs dfs -put input5 /user/hive/inputs
+     ```
+4. Compile Java UDF: In this command user needs to replace the hadoop and hive jar classpaths with the ones installed in their systems.
+   ```bash
+     javac -cp "/etc/hadoop:/opt/hadoop-2.7.4/share/hadoop/common/lib/*:/opt/hadoop-2.7.4/share/hadoop/common/*:/opt/hadoop-2.7.4/hadoop/hdfs:/opt/hadoop-2.7.4/share/hadoop/hdfs/lib/*:/opt/hadoop 2.7.4/share/hadoop/hdfs/*:/opt/hadoop-2.7.4/share/hadoop/yarn/lib/*:/opt/hadoop-2.7.4/share/hadoop/yarn/*:/opt/hadoop-2.7.4/share/hadoop/mapreduce/lib/*:/opt/hadoop-2.7.4/share/hadoop/mapreduce/*:/opt/hive/lib/*" -d . BigramUDF.java
+   ```
+5. Create JAR File: Package the compiled Java class into a JAR file
+   ```bash
+     jar -cvf bigram_udf.jar BigramUDF.class
+   ```
+6. Start Hive CLI
+   ```bash
+     hive
+   ```
+7. Register UDF in Hive
+   ```sql
+     ADD JAR /opt/hive/bigram_udf.jar;
+     CREATE TEMPORARY FUNCTION bigram_count AS 'BigramUDF';
+   ```
+8. Create and Load Data into Tables
+   create a table called lemma_data to store the outputs of the task 2 into a table.
+   ```sql
+     CREATE TABLE lemma_data (
+     book_name STRING,
+     lemma_word STRING,
+     year INT,
+     count INT
+     )
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+   ```
+   Load Data into Table:
+   ```sql
+     LOAD DATA INPATH '/user/hive/inputs/*' OVERWRITE INTO TABLE lemma_data;
+   ```
+9. Aggregate Lemmatized Data:
+   Create an aggregated table that groups lemma words and their counts by book name and year
+   ```sql
+     CREATE TABLE book_lemma AS
+       SELECT book_name, year, 
+       collect_list(lemma_word) AS lemma_words,
+       collect_list(count) AS count_values
+       FROM lemma_data
+       GROUP BY book_name, year;
+   ```
+10. Analyze Bigrams Using UDF:
+    Run the query to extract bigrams and their frequencies using the custom UDF
+    ```sql
+      SELECT book_name, year, bigram_count(lemma_words, count_values) AS bigram_freqs FROM book_lemma;
+    ```
+11. Verify Results:
+    To view the structure of the aggregated table
+    ```sql
+      DESCRIBE book_lemma;
+    ```
+    To view results
+    ```sql
+      SELECT * FROM book_lemma;
+    ```
+### Expected Output Structure:
+  The book_lemma table will have three columns:
+    1. book_name: The name of each book.
+    2. year: The year of publication.
+    3. bigram_freqs: A map containing bigrams as keys and their frequencies as values.
