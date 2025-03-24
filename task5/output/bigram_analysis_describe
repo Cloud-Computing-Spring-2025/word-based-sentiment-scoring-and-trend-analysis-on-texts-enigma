@@ -1,4 +1,5 @@
 col_name,data_type,comment
 book_name,string,
 year,int,
-bigram_freqs,"map<string,int>",
+lemma_words,array<string>,
+count_values,array<int>,
