@@ -188,7 +188,22 @@ To copy the output from HDFS to your local machine:
     ```
 
 ## Task 4: Trend Analysis
+Task 4's goal is to aggregate sentiment scores and word frequencies over decades to identify longg term trends and correlations, using the output datasets from task 2 and task 3 as our inputs for our jobs. Our output is 10 new files with the results of out mapreduce.
 
+Aggregate sentiment scores and word frequencies over broader time intervals (e.g., by decade) to identify long-term trends and potential correlations with historical events.
+
+### Task 4 Processing Steps
+1. cd into the `task4` directory
+1. run `mvn install` to build the package
+1. `docker cp target/DocumentSimilarity-0.0.1-SNAPSHOT.jar resourcemanager:/opt/hadoop-2.7.4/share/hadoop/mapreduce/DocumentSimilarity.jar` moves the jar into the container
+1. `docker cp input resourcemanager:/trendanalysis/input` copies input data into the container
+1. Now, in the container, create input dir in hdfs: `hadoop fs -mkdir -p /input/dataset`
+1. Copy input files from container to hdfs: `hadoop fs -put /trendanalysis/input/*.txt /input/dataset`
+1. Ensure the output directory is removed: `hadoop fs -rm -r /output`
+1. Ensure the local output directory is removed: `rm -r /trendanalysis/output`
+1. Run the job: `hadoop jar /opt/hadoop-2.7.4/share/hadoop/mapreduce/DocumentSimilarity.jar com.example.controller.TrendAnalysisController /input/dataset/*.txt /output`
+1. Extract output: `hdfs dfs -get /output /trendanalysis/`
+1. Download output: `docker cp resourcemanager:/trendanalysis/output output/`
 
 ## Task 5: Bigram Analysis
 Task 5 of the project, which involves extracting and analyzing bigrams using a custom Hive UDF implemented in Java. The UDF processes lemmatized text data, extracts bigrams, and computes their frequency counts.

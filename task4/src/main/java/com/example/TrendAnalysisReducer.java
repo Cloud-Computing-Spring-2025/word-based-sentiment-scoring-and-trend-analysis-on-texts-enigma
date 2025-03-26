@@ -1,3 +1,5 @@
+package com.example;
+
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Reducer;
 
